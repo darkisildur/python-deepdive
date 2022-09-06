@@ -527,6 +527,7 @@ a, b, c = d.items()
 
 ### Extended unpacking
 
+- `Slicing` y `Unpacking` son analogo, aunque este último soporta cualquier `iterable`
 - Podemos hacer `parallel assignment`, que es una forma de llamar el unpacking, `a, b = l[0], l[1:]` donde estamos asignando los elementos de una lista a una serie de variables
 - Sin embargo, podemos usar el operador `*`, `a, *b = l` que hace lo mismo que el `unpacking` del punto anterior. Además funciona con cualquier `iterable`, por ejemplo para aquellos que no tienen `slicing`, como `set` y `dict`
 
@@ -580,5 +581,23 @@ d, e = c --> d = 3, e = 4
 # Podemos covertir el código en dos pasos en una línea
 a, b, (c, d) = [1, 2, [3, 4]]
 ```
-- Otro ejemplo: `a, *b, (c, d, e) = [1, 2, 3, 'XYZ'] --> a = 1, b = [2, 3], c = 'X', d = 'Y', e = 'Z'`
+- Otro ejemplo: `a, *b, (c, d, e) = [1, 2, 3, 'XYZ'] --> a = 1, b = [2, 3], c = 'X', d = 'Y', e = 'Z'`. Para hacer algo parecido usando lists slicing, sería así: `l[0], l[1:-1],l[-1][0],l[-1][1],list(l[-1][2:])`
+
+### *args
+
+Tal como hemos hecho con en la sección anterior, podemos usar el operador `*` para pasar un argumento usando `Unpacking`
+
+```
+def func1(a, b, *args): pass
+```
+
+Podemos definir la función y pasar como argumento una lista:
+
+```
+def func1(a, b, c): pass
+
+l = [10, 20, 30]
+
+func1(*l)
+```
 
