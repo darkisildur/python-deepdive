@@ -492,3 +492,93 @@ Consideremos la función `def my_func(a, b=5, c=10): pass`, con los parámetros 
 ### Unpacking Iterables
 
 Nota: Lo que define un `tuple` no son los parentesis `()`, sino las `,`. `1,2,3` es un tuple, lo que por conveniencia se suele expresar entre parentesis `(1,2,3)`
+
+- El `unpacking` es una forma de dividir un objeto iterable en variables individuales contenidas en una `list` o `tuple`
+- Funciona con cualquier iterable
+- Una aplicación básica de `unpacking` es intercambiar los valores de dos variables
+
+```
+# Sin unpacking
+a = 10
+b = 20
+tmp = a
+a = b
+b = tmp
+```
+
+```
+# Con unpacking
+a, b = b, a
+```
+
+- Nota: Esto funciona en python porque se evalua primero la parte *derecha* y luego se hacen las asignaciones correspondientes a la parte *izquierda*
+- También funciona con `set` y `dict`, aunque hay que tener en cuenta que estos son `unordered`
+
+```
+d = {'key1': 1, 'key2': 2, 'key3': 3}
+# Solo estamos asignando las keys de manera desordenada
+a, b, c = d
+# Podemos unpack los valores con el metodo values()
+a, b, c = d.values()
+# O podemos usar el metodo items(), que devuelve un tuple con la pareja valor llave
+a, b, c = d.items()
+```
+- Podemos pensar que un `set` es como un diccionario que solo tiene `keys`
+
+### Extended unpacking
+
+- Podemos hacer `parallel assignment`, que es una forma de llamar el unpacking, `a, b = l[0], l[1:]` donde estamos asignando los elementos de una lista a una serie de variables
+- Sin embargo, podemos usar el operador `*`, `a, *b = l` que hace lo mismo que el `unpacking` del punto anterior. Además funciona con cualquier `iterable`, por ejemplo para aquellos que no tienen `slicing`, como `set` y `dict`
+
+```
+a, *b = [-10, 5, 2, 100] -> a = -10 and b = [5, 2, 100]
+a, b, *c, d = [1, 2, 3, 4, 5] -> a = 1, b = 2, c = [3,4], d = 5
+```
+- **Sólo se puede usar una vez en la parte izquierda de la asignación, a no ser que sea `nested`**
+
+```
+a, *b, (c, *d) = [1, 2, 3, 'python']
+```
+
+- También se puede usar en la parte derecha de la asignación
+
+```
+l1 = [1, 2, 3]
+l2 = [1, 2, 3]
+## Une las dos listas
+l = [*l1, *l2] --> [1, 2, 3, 4, 5, 6]
+```
+- Para `dict` y `set`, es más util hacer unpacking en la parte derecha de la asignación
+
+```
+d1 = {'p': 1, 'y': 2}
+d2 = {'t': 3, 'h': 4}
+d3 = {'h': 5, 'o': 6, 'n': 7}
+## Hacemos una lista de todas las keys
+l = [*d1, *d2, *d3] --> ['p', 'y', 't', 'h', 'h', 'o', 'n']
+## Si creamos un set eliminamos las keys duplicadas
+s = {*d1, *d2, *d3} --> ['p', 'y', 't', 'h', 'o', 'n']
+```
+- Por otro lado, tenemos el operador `**`, que nos sirve para trabajar con keywords
+- Este operador NO puede usarse en la parte izquierda de la asignación
+
+```
+d1 = {'p': 1, 'y': 2}
+d2 = {'t': 3, 'h': 4}
+d3 = {'h': 5, 'o': 6, 'n': 7}
+## Hacemos un merge de los dictionarios
+l = [**d1, **d2, **d3] --> {'p': 1, 'y': 2, 't': 3, 'h': 4, 'h': 5, 'o': 6, 'n': 7}
+```
+- En este ejemplo también eliminamos los duplicados, porque no puede haber dos keys iguales. El último diccionario evuado es el que ganará.
+- `Nested unpacking` también está soportado. 
+
+```
+l = [1, 2, [3, 4]]
+a, b, c = l --> a = 1, b = 2, c = [3, 4]
+d, e = c --> d = 3, e = 4
+
+# Podemos covertir el código en dos pasos en una línea
+a, b, (c, d) = [1, 2, [3, 4]]
+```
+- Otro ejemplo: `a, *b, (c, d, e) = [1, 2, 3, 'XYZ'] --> a = 1, b = [2, 3], c = 'X', d = 'Y', e = 'Z'`
+
