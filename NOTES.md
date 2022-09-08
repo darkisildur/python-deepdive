@@ -601,3 +601,50 @@ l = [10, 20, 30]
 func1(*l)
 ```
 
+### Keyword (Named) Arguments
+
+- Podemos crear argumentos `keyword` obligatorios
+- Estos se ubican despues de haber acabado con los posicionales
+- Normalmente se usan para modificar el comportamiento por defecto de nuestra funcion
+
+```
+def func(a, b, *args, d): pass
+
+func(1, 2, 'x, 'y', d=100)
+```
+
+- Esto nos funciona porque pasamos el argumento final como `keyword`. De hecho, podemos no pasar las posiciones que irian en args, y tendriamos una tupla vacia. Sin embargo, no funcionara si ejecutamos lo siguiente `func(1, 2)`
+- Podemos restringir el numero de argumentos posicionales de la siguiente manera
+
+```
+# * indica el final de los argumentos posicionales
+# Como solo incluimos *, restringimos los argumentos a 0
+def func(*, d): pass
+```
+
+- Podemos poner todo junto y tener algo como lo siguiente:
+
+```
+# Gracias a *, solo permitimos 2 argumentos posicionales
+def func(a, b=1, *, d, e=True): pass
+```
+
+### **kwargs
+
+- `Keyword arguments`
+- Permite pasar a una funcion un numero arbitrario de argumentos `Keyword`
+- Dentro de la funcion se pasa como un `dict`
+
+```
+def func(**kwargs): pass
+
+func(a=1, b=2, c=3) -> dict
+```
+
+- Se puede usar junto con `*args`
+
+```
+def func(*args, **kwargs): pass
+
+func(1, 2, a=10, b=20, c=30) -> dict
+```
