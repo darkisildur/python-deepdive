@@ -648,3 +648,360 @@ def func(*args, **kwargs): pass
 
 func(1, 2, a=10, b=20, c=30) -> dict
 ```
+
+### Buenas practicas
+
+- Si vamos a pasar objetos mutables que van a ser modificados a una funcion, el proceso correcto es no retornar de vuelta el objecto
+- En el caso de los objetos mutables, cuando Python carga el codigo, los valores por defecto especificados en las funciones son evaluados. Hay que tener cuidado, ya que cuando llamamos la funcion, va a crear referencias compartidas apuntando al objecto (direccion de memoria) que pertenece al valor por defecto. Usar siempre `None` para definir valores por defecto. Hay casos donde este comportamiento puede ser util, como por ejemplo cuando estamos haciendo una recursion
+
+## First-Class Functions
+
+### Introduction
+
+#### First-Class Objects
+
+- Puede pasarse a una funcion como argumento
+- Puede devolverse desde una funcion
+- Puede ser asignarse a una variable
+- Puede guardarse en una structura de datos, como una lista, tuple, etc
+- Las funciones son tambien `first-class objects`
+
+#### Higher-order functions
+
+- Pueden tomar una funcion como argumento
+- Pueden devolver a funcion
+
+### Docstring
+
+- Esta definido en PEP257
+- Se llama via la func `help()`
+- Primera linea de la funcion tiene que ser un `string`
+- Los objetos tienes propiedades, y los docstrings se guardan en `__doc__` que es un `string`
+- Se pueden anadir anotaciones a los parametros de nuestra funcion, esta definido en PEP3107
+
+```
+def my_func(a: <annotation>) -> <annotation>: pass
+```
+- Estas anotaciones no se guardan en `__doc__` sino en `__annotations__` que es un `dict`
+- Las anotaciones pueden ser cualquier expresion, incluso funciones, pero tenemos hay que tener cuidado con cuando se define la funcion por el interprete
+
+### Lambda expressions
+
+- Una funcion sigue el siguiente patron: input -> do something -> output
+- Si definimos una funcion sin `return`, Python devuelve la referencia al objeto `None`
+- Una lambda expression es una forma diferente de crear una funcion y muchas veces se denominan `anonymous`
+
+```
+lambda [parameter list]: expression
+```
+
+- La `expression` devuelve un `function object`
+- Evalua y devuelve la expresion cuando es llamada
+
+```
+lambda x: x**2
+lambda x, y: x + y
+lambda : 'hello'
+lambda s: s[::01].upper()
+apply_func(3, lambda x: x**2) -> 9
+```
+
+- Si evaluamos el tipo de objecto, veremos que es una funcion
+
+- Solo soporta una unica `expression` por lo que no soporta asignaciones
+- No se pueden crear `annotations`
+
+### Code instropection
+
+- Se denomina a analizar el codigo desde el propio codigo que estamos escribiendo
+- Las funciones almacenan metadatos en forma de atributos que se puede consultar con `dir()`
+- Se pueden obtener las variables por defecto de una funcion llamando `__defaults__` entre otros
+- Tambien podemos usar el modulo `inspect`, que contiene varias funciones interesantes como `isfunction()`
+- Este modulo permite recuperar el codigo fuente de nuestras funcions con `getsource()`
+- Incluso permite recuperar los comentarios con `getcomments()`
+
+### Function vs Method
+
+- Las clases y objetos tiene atributos. Un atribute que es `callable` se denomina `method`
+- De hecho un metodo espera recibir el objeto que lo esta llamando como parametros del metodo, `self`
+
+### Callable
+
+- Cualquier objeto que puede ser llamado con el operador `()`
+- Siempre devuelve un valor
+- Se puede comprobar con la funcion `callable`
+- Entre otros objetos, una `class` es tambien un `callable`
+
+### MAP, FILTER, ZIP
+
+- Son `higher order functions`, es decir una funcion que puede tomar una funcion como parametro o devolver una funcion
+- Devuelven un iterable. En este caso, el iterable es un `generator`, es decir no se ejecuta hasta que se itera sobre el iterable devuelto. Esto aplica a las tres funciones, `map`, `filter` y `zip`
+- Alternativas modernas a `map` y `filter` son `list comprehensions` y `generator expressions`
+
+*map*
+
+- Permite mapear iterables a funciones, devolviendo un iterable (generator).
+- Por ejemplo:
+
+```
+# Vamos a sumar los elementos de estas listas
+l1 = [1, 2, 3]
+l2 = [10, 20, 30]
+
+def add(x, y): return x + y
+
+list(map(add, l1, l2)) -> [11, 22, 33]
+# O alternativamente, usando lambda
+# list(map(lambda x, y: x + y, l1, l2))
+```
+
+*filter*
+
+- Permite filtrar un iterable en base a una funcion, devolviendo un iterable
+- El iterable contendra unicamente los elementos que sean `Truthy`
+
+```
+l1 = [0, 1, 2, 3, 4]
+
+list(filter(lambda n: n % 2 == 0, l1)) -> [0, 2, 4]
+```
+
+*zip*
+
+- No es una `high order function`
+- Toma un numero arbitrario de iterables como parametros
+- combina los elementos de los iterables y devuelve un iterable
+- Se puede usar junto con `list comprehension` para hacer calculos de la misma manera que usamos `map`
+
+*list comprehension*
+
+- La mayor diferencia frente a las funciones anteriores que es que devuelve una `list`, es decir, se ejecuta en el momento en el que el interprete ve el codigo
+
+```
+# Comparacion con map
+l1 = [1, 2, 3]
+l2 = [10, 20, 30]
+
+[x + y for x, y in zip(l1, l2)] -> [11, 22, 33]
+```
+```
+# Comparacion con filter como adelanto a list comprehension
+
+l1 = [0, 1, 2, 3, 4]
+
+[x for x in l1 if x % 2 == 0] -> [2, 4]
+```
+
+### Reducing functions
+
+- Recombinan un iterable recursivamente, devolviendo un unico valor
+- Tambien se denominan `accumulators`, `aggregators`, `folding functions`
+- Por ejemplo, encontrar el maximo valor en un iterable
+
+```
+l = [5, 8, 6, 10, 9]
+
+max_value = lambda a, b: a if a > b else b
+
+def max_sequence(s):
+    result = s
+    for e in s[1:]:
+        result = max_value(result, e)
+    return result
+```
+
+- Podemos generalizar la funcion para que aplique a cualquier funcion que tome como parametro. Esto es una `reducing function`
+
+```
+def _reduce(fn, s):
+    result = s[0]
+    for x in s[1:]:
+        result = fn(result, x)
+    return result
+
+# Return the max    
+_reduce(lambda a, b: a if a > b else b, l)
+# Return the min
+_reduce(lambda a, b: a if a < b else b, l)
+# Cummulative sum (usando add function)
+l = [5, 8, 6, 10, 9]
+_reduce(add, l)
+```
+
+- Python incluye estas funciones en el modulo `functools`
+
+```
+from functools import reduce
+
+l = [5, 8, 6, 10, 9]
+
+reduce(lambda a, b: a if a > b else b, l) -> 10
+```
+
+- `reduce` funciona con cualquier iterable
+- Python include multiple `reducing functions`:
+ - `min`
+ - `max`
+ - `sum`
+ - `any`
+ - `all`
+ - etc...
+ 
+### Partial Functions
+
+- Una funcion `partial` es una funcion creada con el objetivo de reducir el numero de argumentos que hay que pasar a una funcion
+- Tambien tenemos la funcion `partial` incluida en el modulo `functools` con la que podemos preasignar argumentos a la funcion raiz y asignarla a una funcion parcial
+
+
+### The `operator` module
+
+- El modulo `operator` se creo para dar funciones equivalentes a los operadores tradicionales lo que nos ahorra la necesidad de crear una funcion para ese proposito.
+
+- Ejemplos son:
+ - `add()`
+ - `mul()`
+ - `pow()`
+ - `mod()`
+ - `floordiv(a, b)`
+ - `lt()`
+ - `gt()`
+ - `eq()`
+ - `contains()`
+ - `setitem()`
+ 
+- Se puede inspeccionar con `dir(operator)`
+
+```
+# Podemos simplificar la siguiente operacion
+reduce(lambda x, y: x*y, [1,2,3,4])
+# Usando el operador adecuado
+reduce(operator.mul, [1,2,3,4])
+```
+
+## Scopes, Closures and Decorators
+
+### Global and Local Scopes
+
+- No podemos usar variables en cualquier parte del codigo, porque las estas asociadas a un `scope` o `lexical scope`
+- Estas asociaciones se guardan en `namespaces`
+- Python asigna si una varible tiene un `local scope` o `global scope` en `compile-time`
+
+**Global Scope**
+
+- Module scope
+- Alcanza un unico fichero
+- No hay tal concepto en Python (disponibilidad para todos los modules de nuestra app) excepto para algunos objetos built-in, como `True`, `False`, `None`, etc
+- Python trata de encontrar la referencia en el `local scope`, si no puede encontrar la asociacion en el `scope's namespace`, buscara en el `enclosing scope namespace`
+
+**Local Scope**
+
+- Variables creadas dentro de funciones
+- Estas no se definen hasta que la funcion es llamada
+- Cada vez que se llama la funcion, se crea un nuevo `local scope` al que se le asignan las variables. Esto es debido a que cada vez que llamamos la funcion, las referencias puede ser diferentes. De hecho, este es el motivo por el que funciona la recusion
+- Podemos forzar que una variable definida en el `local scope` tenga `global scope` con la keyword `global`
+- Dentro de una funcion, podemos llamar una variable definida en el `global scope` sin tener que pasarla como argumento, pero cuidado con asignar una variable global dentro de una funcion. Python va a asignar si la variable tiene que se local o global durante la compilacion.
+
+**Nested scope**
+
+- `Local Scope -> Module Scope -> Built-in scope`
+
+**Code**
+
+```
+a = 10
+
+def func1():
+    print(a) # a is non-local
+    
+def func2():
+    a = 100 # a is local
+
+def func3():
+    global a
+    a = 100 #  a is global
+    
+def func4():
+    print(a)
+    a = 100 # a is local
+
+# Note: func4() results in a run-time error as a is local but we try to print it before assigment
+```
+
+### Nonlocal Scope
+
+- Definicion de funciones dentro de funciones
+- Se crean `nested local scopes` porque cada funcion crea su propio `local scope` cuando es llamada
+- Las `inner functions` tendran acceso al `scope` de la `outer function` en la que estan definidas
+
+```
+def outer():
+    a = 10 # a is local to outer
+    
+    def inner():
+        # inner access a from outer's local scope but is not local to inner
+        print(a)`in`
+    
+    inner()
+
+outer()
+```
+
+- Podemos decir a Python que estamos modificando una `nonlocal variable` con la keyword `nonlocal`
+
+```
+def outer():
+    x = 'hello'
+    
+    def inner():
+        nonlocal x
+        x = 'python'
+        
+    inner()
+    
+    print(x) -> returns 'python'
+```
+
+- `nonlocal` solo buscara en los `enclosing local scopes`, pero nunca en el `global scope`
+
+### Closures
+
+- Recordatorio: Las funciones definidas dentro de otra funcion pueden acceder las variables de la funcion exterior (`nonlocal`). Estas variables se denominan `free variables`
+- Cuando definimos la funcion `inner` con una `free variable`, tenemos una asociacion entre ambas, esta asociacion se denomina `closure`
+- Una funcion se convierte en `closure` unicamente cuando contiene una `free variable`
+- Si en vez de ejecutar `inner` dentro de `outer`, devolvemos la primera, devolvemos un `closure`
+- Sin embargo, en este caso tendriamos que preguntarnos por que funciona? ya que si asignacion el `closure` a una variable, al ejecutar dicha variable, la funcion `outer` deberia haber terminado su ejecucion, por lo que la funcion `inner` no deberia funcionar ya que es su `scope` se ha destruido. Pero esto es precisamente lo que hacen los `closures` y el porque son unos objetos especiales en Python
+- Para que esto ocurra, Python crea un objeto intermedio denominado `cell` para crear referencias compartidas para las variables que tienen multiples `scopes`. Esta `cell` a su vez apunta al objeto que guarda el valor real de la variable
+- Se puede revisar las `freevars` y los `closures` haciendo instropeccion
+
+```
+fn.__code__.co_freevars
+fn.__closure__
+```
+
+- Cada asignacion creara un `closure` independientes, instancias diferentes que no comparten `extended scope`
+- Se puede compartir `extended scope` Por ejemplo, dos `inner` dentro de una `outer`, devolviendo las dos primeras en un tuple
+
+```
+def outer():
+    # Variable compartida entre inc1 y inc2
+    count = 0
+    
+    # Junto con count, primer closure
+    def inc1():
+        nonlocal count
+        count += 1
+        return count
+        
+    # Junto con coun, segundo closure
+    def inc2():
+        nonlocal count
+        count += 1
+        return count
+        
+    return inc1, inc2
+    
+f1, f2 = outer()
+f1() -> 1
+f2() -> 2
+```
+- Se pueden crear `nested closures`, que seran importantes en la seccion de `decorators`
